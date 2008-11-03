@@ -31,6 +31,10 @@
 #	include <signal.h>
 #endif
 
+#ifdef NEKO_STANDALONE_DUMMY
+#undef NEKO_STANDALONE
+#endif
+
 #ifdef NEKO_STANDALONE
 	extern void neko_standalone_init();
 	extern void neko_standalone_error( const char *str );

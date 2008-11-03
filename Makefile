@@ -64,18 +64,25 @@ endif
 
 ifeq (${IPHONE}, 1)
 
-export MACOSX_DEPLOYMENT_TARGET=10.3
-EXTFLAGS =
-STATICLIB = 1
+export MACOSX_DEPLOYMENT_TARGET=10.5
 NO_COMPILER = 1
 MAKESO = $(CC)
 MAKEAR = $(AR) cru
+
+ifeq (${STATICLIB}, 1)
+EXTFLAGS = -DNEKO_STANDALONE -DNEKO_STANDALONE_DUMMY
 LIBNEKO_NAME = libneko.a
-LIBNEKO_INSTALL = 
-LIBNEKO_LIBS = -single_module ${LIBNEKO_INSTALL}
+LIBSTD_NAME  = libnekostd.a
 NEKOVM_DEPS = bin/${LIBSTD_NAME}
-NEKOVM_FLAGS = -L${PWD}/bin -lneko -ldl -lgc -lm 
+NEKOVM_FLAGS = ${STD_OBJECTS} -L${PWD}/bin -lneko -ldl -lgc -lm
+else
+EXTFLAGS =
+LIBNEKO_NAME = libneko.dylib
+LIBNEKO_INSTALL = -install_name @executable_path/${LIBNEKO_NAME}
+LIBNEKO_LIBS = -ldl -lgc -lm -dynamiclib -single_module ${LIBNEKO_INSTALL}
+NEKOVM_FLAGS = -L${PWD}/bin -Wl,-executable_path -Wl,${PWD}/bin -lneko
 STD_NDLL_FLAGS = -bundle -undefined dynamic_lookup ${NEKOVM_FLAGS}
+endif
 
 endif
 
@@ -159,13 +166,18 @@ bin/neko: $(VM_OBJECTS) bin/${LIBNEKO_NAME} ${NEKOVM_DEPS}
 	${CC} ${LDFLAGS} ${CFLAGS} ${EXTFLAGS} -o $@ ${VM_OBJECTS} ${NEKOVM_FLAGS}
 	${STRIP} bin/neko
 
+ifeq (${STATICLIB},1)
+bin/${LIBSTD_NAME}: ${STD_OBJECTS} bin/${LIBNEKO_NAME}
+	${MAKEAR} $@ ${STD_OBJECTS}
+else
 bin/${LIBSTD_NAME}: ${STD_OBJECTS} bin/${LIBNEKO_NAME}
 	${MAKESO} ${LDFLAGS} ${EXTFLAGS} -o $@ ${STD_OBJECTS} ${STD_NDLL_FLAGS}
+endif
 
 clean:
 	rm -rf bin/${LIBNEKO_NAME} ${LIBNEKO_OBJECTS} ${VM_OBJECTS}
 	rm -rf bin/neko bin/nekoc bin/nekoml bin/nekotools
-	rm -rf bin/std bin/*.ndll bin/*.n libs/*/*.o
+	rm -rf bin/std bin/*.ndll bin/*.a bin/*.dylib bin/*.so bin/*.n libs/*/*.o
 	rm -rf src/*.n src/neko/*.n src/nekoml/*.n src/tools/*.n
 	rm -rf bin/mtypes bin/tools
 

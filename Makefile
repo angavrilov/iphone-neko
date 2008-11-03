@@ -75,6 +75,7 @@ LIBNEKO_NAME = libneko.a
 LIBSTD_NAME  = libnekostd.a
 NEKOVM_DEPS = bin/${LIBSTD_NAME}
 NEKOVM_FLAGS = ${STD_OBJECTS} -L${PWD}/bin -lneko -ldl -lgc -lm
+STRIP = :
 else
 EXTFLAGS =
 LIBNEKO_NAME = libneko.dylib

@@ -2,8 +2,11 @@
 
 INSTALL_PREFIX = /usr/local
 
-CFLAGS = -Wall -O3 -fPIC -fomit-frame-pointer -I vm -D_GNU_SOURCE -I $(gc_inc_path)
-LDFLAGS = -L$(gc_lib_path)
+BASE_CFLAGS := $(CFLAGS)
+BASE_LDFLAGS := $(LDFLAGS)
+
+CFLAGS += -Wall -O3 -fPIC -fomit-frame-pointer -I vm -D_GNU_SOURCE -I $(gc_inc_path)
+LDFLAGS += -L$(gc_lib_path)
 EXTFLAGS = -pthread
 MAKESO = $(CC) -shared -WBsymbolic
 LIBNEKO_NAME = libneko.so
@@ -66,7 +69,7 @@ ifeq (${IPHONE}, 1)
 
 export MACOSX_DEPLOYMENT_TARGET=10.5
 NO_COMPILER = 1
-MAKESO = $(CC)
+MAKESO = $(CC) $(BASE_CFLAGS)
 MAKEAR = $(AR) cru
 
 ifeq (${STATICLIB}, 1)

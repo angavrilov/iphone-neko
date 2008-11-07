@@ -82,7 +82,7 @@ EXTFLAGS = -DNEKO_STANDALONE -DNEKO_STANDALONE_DUMMY
 LIBNEKO_NAME = libneko.a
 LIBSTD_NAME  = libnekostd.a
 NEKOVM_DEPS = bin/${LIBSTD_NAME}
-NEKOVM_FLAGS = ${STD_OBJECTS} -L${PWD}/bin -lneko -ldl -lgc -lm
+NEKOVM_FLAGS = -L${PWD}/bin -lnekostd -lneko -ldl -lgc -lm
 STRIP = :
 else
 EXTFLAGS =
@@ -134,6 +134,10 @@ else
 all: bin libneko neko std compiler libs
 endif
 
+ifeq (${STATICLIB},1)
+STD_OBJECTS += libs/std/stdlib.o
+endif
+
 universal:
 	make MACOSX=1 OSX_UNIVERSAL=1
 
@@ -182,6 +186,9 @@ else
 bin/${LIBSTD_NAME}: ${STD_OBJECTS} bin/${LIBNEKO_NAME}
 	${MAKESO} ${LDFLAGS} ${EXTFLAGS} -o $@ ${STD_OBJECTS} ${STD_NDLL_FLAGS}
 endif
+
+libs/std/stdlib.c : libs/std/stdlib.pl $(filter-out libs/std/stdlib.c, $(wildcard libs/std/*.c))
+	perl $^ > $@
 
 clean:
 	rm -rf bin/${LIBNEKO_NAME} ${LIBNEKO_OBJECTS} ${VM_OBJECTS}

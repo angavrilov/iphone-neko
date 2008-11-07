@@ -22,6 +22,11 @@ ifeq (${STRIP},)
 STRIP = strip
 endif
 
+ifeq (${NO_THREADS},1)
+EXTFLAGS =
+CFLAGS += -DNEKO_NO_THREADS
+endif
+
 # For OSX
 #
 # MACOSX = 1

@@ -80,10 +80,12 @@ MAKEAR = $(AR) crsu
 ifeq (${STATICLIB}, 1)
 EXTFLAGS = -DNEKO_STANDALONE -DNEKO_STANDALONE_DUMMY
 LIBNEKO_NAME = libneko.a
+LIBRE_NAME = libnekore.a
 LIBSTD_NAME  = libnekostd.a
 NEKOVM_DEPS = bin/${LIBSTD_NAME}
 NEKOVM_FLAGS = -L${PWD}/bin -lnekostd -lneko -ldl -lgc -lm
 STRIP = :
+BUILD_PCRE = 1
 else
 EXTFLAGS =
 LIBNEKO_NAME = libneko.dylib
@@ -132,6 +134,14 @@ ifeq (${NO_COMPILER},1)
 all: bin libneko neko std
 else
 all: bin libneko neko std compiler libs
+endif
+
+ifeq (${BUILD_PCRE},1)
+CFLAGS += -I libs/include/pcre -DNEKO_STANDALONE_REGEXP
+NEKOVM_DEPS += bin/${LIBRE_NAME}
+NEKOVM_FLAGS += -lnekore
+
+all: regexp
 endif
 
 ifeq (${STATICLIB},1)
@@ -190,10 +200,17 @@ endif
 libs/std/stdlib.c : libs/std/stdlib.pl $(filter-out libs/std/stdlib.c, $(wildcard libs/std/*.c))
 	perl $^ > $@
 
+ifeq (${BUILD_PCRE},1)
+regexp: bin/${LIBRE_NAME}
+
+bin/${LIBRE_NAME}: libs/regexp/regexp.o $(patsubst %.c,%.o,$(wildcard libs/include/pcre/*.c))
+	${MAKEAR} $@ $^
+endif
+
 clean:
 	rm -rf bin/${LIBNEKO_NAME} ${LIBNEKO_OBJECTS} ${VM_OBJECTS}
 	rm -rf bin/neko bin/nekoc bin/nekoml bin/nekotools
-	rm -rf bin/std bin/*.ndll bin/*.a bin/*.dylib bin/*.so bin/*.n libs/*/*.o
+	rm -rf bin/std bin/*.ndll bin/*.a bin/*.dylib bin/*.so bin/*.n libs/*/*.o libs/include/*/*.o
 	rm -rf src/*.n src/neko/*.n src/nekoml/*.n src/tools/*.n
 	rm -rf bin/mtypes bin/tools
 

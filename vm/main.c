@@ -211,6 +211,9 @@ int main( int argc, char *argv[] ) {
 #	ifdef NEKO_STANDALONE_DUMMY
 	neko_stdlib_init();
 #	endif
+#	ifdef NEKO_STANDALONE_REGEXP
+	regexp_main();
+#	endif
 	if( !neko_has_embedded_module(vm) ) {
 		int jit = 1;
 		int stats = 0;

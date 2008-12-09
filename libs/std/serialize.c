@@ -167,7 +167,7 @@ static void serialize_fields_rec( value data, field id, void *b );
 
 void serialize_rec( sbuffer *b, value o ) {
 	b->nrec++;
-	if( b->nrec > 350 )
+	if( b->nrec > 35000 )
 		failure("Serialization stack overflow");
 	switch( val_type(o) ) {
 	case VAL_NULL:

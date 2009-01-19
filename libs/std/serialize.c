@@ -33,10 +33,13 @@ typedef struct odatalist {
 	struct odatalist *right;
 } odatalist;
 
+#define TREF_LEVEL_SHIFT 10
+#define TREF_LEVEL_MASK ((1<<TREF_LEVEL_SHIFT)-1)
+
 typedef struct {
 	odatalist *refs;
 	int nrefs;
-	value *trefs;
+	value **trefs;
 	int tsize;
 	strlist *olds;
 	unsigned char *cur;
@@ -153,14 +156,19 @@ static bool write_ref( sbuffer *b, value o, value *serialize ) {
 }
 
 static void add_ref( sbuffer *b, value v ) {
+	int tcnt = b->nrefs >> TREF_LEVEL_SHIFT;
 	if( b->nrefs == b->tsize ) {
-		int nsize = b->tsize?(b->tsize*2):16;
-		value *ntrefs = (value*)alloc(sizeof(value) * nsize);
-		memcpy(ntrefs,b->trefs,b->tsize * sizeof(value));
+		int nsize = b->tsize?(b->tsize*2):16<<TREF_LEVEL_SHIFT;
+		int ncnt = nsize>>TREF_LEVEL_SHIFT;
+		value **ntrefs = (value**)alloc(sizeof(value*) * ncnt);
+		memcpy(ntrefs,b->trefs,tcnt * sizeof(value*));
+		memset(ntrefs+tcnt,0,(ncnt-tcnt) * sizeof(value*));
 		b->trefs = ntrefs;
 		b->tsize = nsize;
 	}
-	b->trefs[b->nrefs++] = v;
+	if ( b->trefs[tcnt] == NULL )
+		b->trefs[tcnt] = (value*)alloc(sizeof(value) * (1<<TREF_LEVEL_SHIFT));
+	b->trefs[tcnt][b->nrefs++ & TREF_LEVEL_MASK] = v;
 }
 
 static void serialize_fields_rec( value data, field id, void *b );
@@ -399,9 +407,10 @@ static value unserialize_rec( sbuffer *b, value loader ) {
 	case 'r':
 		{
 			int n = read_int(b);
+			int ix = b->nrefs - n - 1;
 			if( n < 0 || n >= b->nrefs )
 				ERROR();
-			return b->trefs[b->nrefs - n - 1];
+			return b->trefs[ix >> TREF_LEVEL_SHIFT][ix & TREF_LEVEL_MASK];
 		}
 	case 'a':
 		{

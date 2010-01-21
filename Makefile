@@ -78,7 +78,7 @@ MAKESO = $(CC) $(BASE_CFLAGS)
 MAKEAR = $(AR) crsu
 
 ifeq (${STATICLIB}, 1)
-EXTFLAGS = -DNEKO_STANDALONE -DNEKO_STANDALONE_DUMMY
+EXTFLAGS = -DNEKO_IPHONE -DNEKO_STANDALONE -DNEKO_STANDALONE_DUMMY
 LIBNEKO_NAME = libneko.a
 LIBRE_NAME = libnekore.a
 LIBSTD_NAME  = libnekostd.a
@@ -87,7 +87,7 @@ NEKOVM_FLAGS = -L${PWD}/bin -lnekostd -lneko -ldl -lgc -lm
 STRIP = :
 BUILD_PCRE = 1
 else
-EXTFLAGS =
+EXTFLAGS = -DNEKO_IPHONE
 LIBNEKO_NAME = libneko.dylib
 LIBNEKO_INSTALL = -install_name @executable_path/${LIBNEKO_NAME}
 LIBNEKO_LIBS = -ldl -lgc -lm -dynamiclib -single_module ${LIBNEKO_INSTALL}

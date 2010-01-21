@@ -544,12 +544,14 @@ static value sys_exe_path() {
 #endif
 }
 
+#ifndef NEKO_IPHONE
 #ifdef NEKO_MAC
 #	define environ (*_NSGetEnviron())
 #endif
 
 #ifndef NEKO_WINDOWS
 extern char **environ;
+#endif
 #endif
 
 /**
@@ -558,6 +560,7 @@ extern char **environ;
 **/
 static value sys_env() {
 	value h = val_null;
+#ifndef NEKO_IPHONE
 	value cur = NULL, tmp, key;
 	char **e = environ;
 	while( *e ) {
@@ -579,6 +582,7 @@ static value sys_env() {
 		cur = tmp;
 		e++;
 	}
+#endif
 	return h;
 }
 
